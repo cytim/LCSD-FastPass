@@ -1,0 +1,21 @@
+{
+  "manifest_version": 2,
+  "name": "LCSD Bookable 執場易",
+  "version": "1.0.0",
+  "description": "An assistant to check the available timeslot of LCSD facilities.",
+  "icons": {
+    "16": "icons/16.png",
+    "48": "icons/48.png",
+    "128": "icons/128.png"
+  },
+  "browser_action": {
+    "default_popup": "pages/popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://t2.leisurelink.lcsd.gov.hk/lcsd/leisurelink/dispatchFlow.do*"],
+      "js": ["scripts/jquery.min.js", "scripts/inject.js"]
+    }
+  ],
+  "minimum_chrome_version": "40"
+}
