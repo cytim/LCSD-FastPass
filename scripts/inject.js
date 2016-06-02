@@ -60,41 +60,48 @@ function init(callback) {
   var $body         = $document.find('body');
   var $areaDropdown = $body.find('#areaPanel select');
   var $searchResult = $body.find('#searchResult');
-  var courtStats    = [];
 
   if (!($document.length && $body.length && $areaDropdown.length && $searchResult.length))
     return callback(new ResourceError('Document is not ready.'));
 
   var changeEvent = new Event('change');
 
-  var courtObserver = new MutationObserver(function() {
-    var $courtStat = $searchResult.find('#searchResultTable').clone().removeAttr('id');
-    courtStats.push($courtStat);
-    $searchResult.data('is-mutated', true);
+  var courtObserver = new MutationObserver(function(mutations) {
+    if ($searchResult.data('no-result') === 1) {
+      $searchResult.data('no-result', 0);
+    } else {
+      $searchResult.data('is-mutated', 1);
+    }
   });
 
-  function resetCourtStat() {
+  function resetSearchResult() {
+    $searchResult.data('no-result', -1).data('is-mutated', -1);
     $searchResult.find('#searchResultTable').show();
-    $searchResult.find('#allResult').remove();
-    courtStats.splice(0, courtStats.length);
+    if ($searchResult.find('#allResult').length) {
+      $searchResult.data('no-result', 1);
+      $searchResult.find('#allResult').remove();
+    }
   }
 
-  function showSearchResult(results) {
+  function showSearchResult($courtStats) {
     var $allResult = $('<div id="allResult"></div>');
-    for (var i = 0; i < results.length; i++) {
-      $allResult.append(results[i]);
+    for (var i = 0; i < $courtStats.length; i++) {
+      $allResult.append($courtStats[i]);
     }
     $searchResult.find('#searchResultTable').hide().after($allResult);
   }
 
-  function checkVenueAvailability(venues, $venuePrefs, $locPrefs, callback) {
-    var isCourtStatMutated = $searchResult.data('is-mutated');
-    if (!isCourtStatMutated && isCourtStatMutated !== undefined)
+  function checkVenueAvailability($courtStats, venues, $venuePrefs, $locPrefs, callback) {
+    if ($searchResult.data('is-mutated') === 0)
       return callback(new ResourceError('Court statistic is not ready.'));
 
-    if (!venues.length) {
-      return callback(null, courtStats);
-    };
+    if ($searchResult.data('is-mutated') === 1) {
+      var $courtStat = $searchResult.find('#searchResultTable').clone().removeAttr('id');
+      $courtStats.push($courtStat);
+    }
+
+    if (!venues.length)
+      return callback(null, $courtStats);
 
     var venue, $locations;
     for (var i = 0; i < $venuePrefs.length; i++) {
@@ -108,10 +115,10 @@ function init(callback) {
         $locPrefs[i][0].dispatchEvent(changeEvent);
       }
     }
-    $searchResult.data('is-mutated', false);
+    $searchResult.data('is-mutated', 0);
     $body.find('#searchButtonPanel .actionBtnContinue, #searchButtonPanel .actionBtnContinue_hover').click();
 
-    poll(checkVenueAvailability.bind(this, venues, $venuePrefs, $locPrefs), callback);
+    poll(checkVenueAvailability.bind(this, $courtStats, venues, $venuePrefs, $locPrefs), callback);
   }
 
   function checkAvailability(area, callback) {
@@ -127,7 +134,8 @@ function init(callback) {
 
     if ($venuePrefs[0].children('option').length <= 1 ||
         $venuePrefs[1].children('option').length <= 1 ||
-        $venuePrefs[2].children('option').length <= 1) {
+        $venuePrefs[2].children('option').length <= 1 ||
+        $venuePrefs[0].data('first-option') === $venuePrefs[0].children('option').eq(1).val()) {
       return callback(new ResourceError('Venue list is not ready.'));
     }
 
@@ -136,16 +144,18 @@ function init(callback) {
       if (i > 0)
         venues.push($(this).val());
     });
+    // for determining if the list is updated
+    $venuePrefs[0].data('first-option', venues[1]);
 
-    checkVenueAvailability(venues, $venuePrefs, $locPrefs, callback);
+    checkVenueAvailability([], venues, $venuePrefs, $locPrefs, callback);
   }
 
   function onAreaSelected() {
     $areaDropdown.change(function() {
-      resetCourtStat();
-      poll(checkAvailability.bind(null, $areaDropdown.val()), function(err, results) {
+      resetSearchResult();
+      poll(checkAvailability.bind(null, $areaDropdown.val()), function(err, $courtStats) {
         if (err) throw err;
-        showSearchResult(results);
+        showSearchResult($courtStats);
       });
     });
   }
