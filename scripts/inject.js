@@ -1,6 +1,4 @@
-var EMPTY_FN = function(err) {
-  if (err) throw err;
-};
+var EMPTY_FN = function() {};
 
 /**
  * Resourcec Error
@@ -64,6 +62,15 @@ function init(callback) {
   if (!($document.length && $body.length && $areaDropdown.length && $searchResult.length))
     return callback(new ResourceError('Document is not ready.'));
 
+  var cssPath = chrome.extension.getURL('css/inject.css');
+  $document.find('head')
+      .append($('<link>')
+      .attr("rel","stylesheet")
+      .attr("type","text/css")
+      .attr("href", cssPath));
+
+  var $loading = $('<div id="lcsd-bookable-loading"></div>').hide().appendTo($body);
+
   var changeEvent = new Event('change');
 
   var courtObserver = new MutationObserver(function(mutations) {
@@ -73,6 +80,22 @@ function init(callback) {
       $searchResult.data('is-mutated', 1);
     }
   });
+
+  function showLoading(callback) {
+    callback = callback || EMPTY_FN;
+    $body.addClass('lcsd-overflow-lock');
+    $loading.fadeIn(250, function() {
+      callback(hideLoading);
+    });
+  }
+
+  function hideLoading(callback) {
+    callback = callback || EMPTY_FN;
+    $loading.fadeOut(250, function() {
+      $body.removeClass('lcsd-overflow-lock');
+      callback();
+    });
+  }
 
   function resetSearchResult() {
     $searchResult.data('no-result', -1).data('is-mutated', -1);
@@ -152,10 +175,13 @@ function init(callback) {
 
   function onAreaSelected() {
     $areaDropdown.change(function() {
-      resetSearchResult();
-      poll(checkAvailability.bind(null, $areaDropdown.val()), function(err, $courtStats) {
-        if (err) throw err;
-        showSearchResult($courtStats);
+      showLoading(function(done) {
+        resetSearchResult();
+        poll(checkAvailability.bind(null, $areaDropdown.val()), function(err, $courtStats) {
+          if (err) throw err;
+          showSearchResult($courtStats);
+          done();
+        });
       });
     });
   }

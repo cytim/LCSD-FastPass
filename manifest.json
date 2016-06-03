@@ -14,8 +14,13 @@
   "content_scripts": [
     {
       "matches": ["*://t2.leisurelink.lcsd.gov.hk/lcsd/leisurelink/dispatchFlow.do*"],
+      "css": ["css/inject.css"],
       "js": ["scripts/jquery.min.js", "scripts/inject.js"]
     }
   ],
-  "minimum_chrome_version": "40"
+  "minimum_chrome_version": "40",
+  "web_accessible_resources": [
+    "css/*",
+    "images/*"
+  ]
 }
