@@ -63,11 +63,12 @@ function init(callback) {
     return callback(new ResourceError('Document is not ready.'));
 
   var cssPath = chrome.extension.getURL('css/inject.css');
-  $document.find('head')
-      .append($('<link>')
-      .attr("rel","stylesheet")
-      .attr("type","text/css")
-      .attr("href", cssPath));
+  $document
+    .find('head')
+    .append($('<link>')
+              .attr("rel","stylesheet")
+              .attr("type","text/css")
+              .attr("href", cssPath));
 
   var $loading = $('<div id="lcsd-bookable-loading"></div>').hide().appendTo($body);
 
