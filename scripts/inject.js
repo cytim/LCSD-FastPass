@@ -56,22 +56,14 @@ function init(callback) {
 
   var $document     = $('frame[name="main"]').contents();
   var $body         = $document.find('body');
-  var $areaDropdown = $body.find('#areaPanel select');
   var $searchResult = $body.find('#searchResult');
 
-  if (!($document.length && $body.length && $areaDropdown.length && $searchResult.length))
+  if (!($document.length && $body.length && $searchResult.length))
     return callback(new ResourceError('Document is not ready.'));
 
-  var cssPath = chrome.extension.getURL('css/inject.css');
-  $document
-    .find('head')
-    .append($('<link>')
-              .attr("rel","stylesheet")
-              .attr("type","text/css")
-              .attr("href", cssPath));
-
-  var $loading = $('<div id="lcsd-bookable-loading"></div>').hide().appendTo($body);
-
+  /* * * * * * * * * * * * * * * * * * * * *
+   * Define variables and functions
+   * * * * * * * * * * * * * * * * * * * * */
   var changeEvent = new Event('change');
 
   var courtObserver = new MutationObserver(function(mutations) {
@@ -82,20 +74,15 @@ function init(callback) {
     }
   });
 
-  function showLoading(callback) {
-    callback = callback || EMPTY_FN;
-    $body.addClass('lcsd-overflow-lock');
-    $loading.fadeIn(250, function() {
-      callback(hideLoading);
+  function loadFacilityCheckPage() {
+    var facilityCheckPage = chrome.extension.getURL('pages/facility-check.html')
+    var frame = $('<iframe />', {
+      id: 'lcsd-bookable-facility-check',
+      src: facilityCheckPage,
+      // style: 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; border: none;'
+      style: 'width: 100%; height: 100%; border: none;'
     });
-  }
-
-  function hideLoading(callback) {
-    callback = callback || EMPTY_FN;
-    $loading.fadeOut(250, function() {
-      $body.removeClass('lcsd-overflow-lock');
-      callback();
-    });
+    $body.append(frame);
   }
 
   function resetSearchResult() {
@@ -115,13 +102,58 @@ function init(callback) {
     $searchResult.find('#searchResultTable').hide().after($allResult);
   }
 
+  function parseSearchResults($table) {
+    function parseTimeslots($row) {
+      var $cols = $row.children('td');
+      var slots = [];
+      for (var i = 2; i < $cols.length; i++) {
+        slots.push($cols.eq(i).children('.gwt-HTML').text())
+      }
+      return slots;
+    }
+
+    function parseVenue($row, slots) {
+      var $cols = $row.children('td');
+      var $col;
+      var venue = { name: $cols.eq(1).text(), slots: {} };
+      for (var i = 2; i < $cols.length && i < slots.length; i++) {
+        $col = $cols.eq(i);
+        venue.slots[slots[i]] = {
+          status: $col.children('.gwt-HTML').text().trim(),
+          isPeak: $col.is('.timeslotCellPeak') ? true : $col.is('.timeslotCellNonPeak') ? false : null
+        };
+      }
+      return venue;
+    }
+
+    function parseCourt($row, slots, venue) {
+      var court = parseVenue($row, slots);
+      venue.courts = (venue.courts || []).concat([court]);
+    }
+
+    var $rows = $table.children('tbody').children('tr');
+    var slots;
+    var venues = [];
+    $rows.each(function(i) {
+      var $row = $(this);
+      if (i === 0)
+        slots = parseTimeslots($row);
+      else if ($rows.eq(i).css('display') !== 'none')
+        venues.push(parseVenue($row, slots));
+      else
+        parseCourt($row, slots, _.last(venues));
+    });
+    return venues;
+  }
+
   function checkVenueAvailability($courtStats, venues, $venuePrefs, $locPrefs, callback) {
     if ($searchResult.data('is-mutated') === 0)
       return callback(new ResourceError('Court statistic is not ready.'));
 
     if ($searchResult.data('is-mutated') === 1) {
-      var $courtStat = $searchResult.find('#searchResultTable').clone().removeAttr('id');
-      $courtStats.push($courtStat);
+      var $table = $searchResult.find('#searchResultTable > table').first().clone().removeAttr('id');
+      console.log(parseSearchResults($table));
+      $courtStats.push($table);
     }
 
     if (!venues.length)
@@ -145,7 +177,7 @@ function init(callback) {
     poll(checkVenueAvailability.bind(this, $courtStats, venues, $venuePrefs, $locPrefs), callback);
   }
 
-  function checkAvailability(area, callback) {
+  function checkAvailability(callback) {
     var venues      = [];
     var $venuePrefs = [];
     var $locPrefs   = [];
@@ -174,21 +206,33 @@ function init(callback) {
     checkVenueAvailability([], venues, $venuePrefs, $locPrefs, callback);
   }
 
-  function onAreaSelected() {
-    $areaDropdown.change(function() {
-      showLoading(function(done) {
-        resetSearchResult();
-        poll(checkAvailability.bind(null, $areaDropdown.val()), function(err, $courtStats) {
-          if (err) throw err;
-          showSearchResult($courtStats);
-          done();
-        });
-      });
+  function search(callback) {
+    resetSearchResult();
+    poll(checkAvailability, function(err, $courtStats) {
+      if (err) throw err;
+      showSearchResult($courtStats);
+      callback(err, $courtStats);
     });
   }
 
+  /* * * * * * * * * * * * * * * * * * * * *
+   * Setup the page
+   * * * * * * * * * * * * * * * * * * * * */
+  loadFacilityCheckPage();
   courtObserver.observe($searchResult[0], {childList: true, subtree: true});
-  onAreaSelected();
+
+  function dispatch(action) {
+    chrome.runtime.sendMessage(action);
+  };
+
+  chrome.runtime.onMessage.addListener(function(action) {
+    switch (action.type) {
+    case 'FACILITIES_SEARCH_REQUEST':
+      return search(function(err, data) {
+        dispatch({type: 'FACILITIES_SEARCH_RESPONSE', error: err, data: data});
+      });
+    }
+  });
 
   // everything is ready
   callback(null);
