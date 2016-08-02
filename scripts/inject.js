@@ -225,13 +225,23 @@ function init(callback) {
     chrome.runtime.sendMessage(action);
   };
 
-  chrome.runtime.onMessage.addListener(function(action) {
-    switch (action.type) {
-    case 'FACILITIES_SEARCH_REQUEST':
+  var processors = {
+    requestSearchOptions: function() {
+      console.log('TODO: request search options');
+    },
+
+    requestFacilitiesSearch: function(input) {
       return search(function(err, data) {
-        dispatch({type: 'FACILITIES_SEARCH_RESPONSE', error: err, data: data});
+        dispatch(Action.create(Action.FACILITIES_SEARCH_RESPONSE, data, err));
       });
     }
+  };
+
+  chrome.runtime.onMessage.addListener(function(action) {
+    if (action.error)
+      throw action.error;
+    if (processors[action.type])
+      return processors[action.type](action.data);
   });
 
   // everything is ready
