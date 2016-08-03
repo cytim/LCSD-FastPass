@@ -15,9 +15,9 @@ ResourceError.prototype.constructor = ResourceError;
  * Internal Error
  */
 function InternalError(message) {
- this.name = 'Internal Error';
- this.message = message || 'Unknown reason.';
- this.stack = (new Error()).stack;
+  this.name = 'Internal Error';
+  this.message = message || 'Unknown reason.';
+  this.stack = (new Error()).stack;
 }
 InternalError.prototype = Object.create(Error.prototype);
 InternalError.prototype.constructor = InternalError;
@@ -49,30 +49,35 @@ function poll(execute, next, interval, maxTrial, currTrial) {
 }
 
 /**
+ * Dispatch an action
+ * @param {Object} action
+ */
+function dispatch(action) {
+  chrome.runtime.sendMessage(action);
+};
+
+/**
  * Initiation of the extension
  */
 function init(callback) {
   callback = callback || EMPTY_FN;
 
-  var $document     = $('frame[name="main"]').contents();
-  var $body         = $document.find('body');
-  var $searchResult = $body.find('#searchResult');
+  var $document      = $('frame[name="main"]').contents();
+  var $body          = $document.find('body');
+  var $searchResult  = $body.find('#searchResult');
+  var $selectDate    = $body.find('#datePanel > select');
+  var $selectFac     = $body.find('#facilityPanel > select');
+  var $selectFacType = $body.find('#facilityTypePanel > select');
+  var $selectSession = $body.find('#sessionTimePanel > select');
+  var $selectArea    = $body.find('#areaPanel > select');
 
-  if (!($document.length && $body.length && $searchResult.length))
+  if (!($document.length && $body.length && $searchResult.length && $selectArea.length))
     return callback(new ResourceError('Document is not ready.'));
 
   /* * * * * * * * * * * * * * * * * * * * *
    * Define variables and functions
    * * * * * * * * * * * * * * * * * * * * */
   var changeEvent = new Event('change');
-
-  var courtObserver = new MutationObserver(function(mutations) {
-    if ($searchResult.data('no-result') === 1) {
-      $searchResult.data('no-result', 0);
-    } else {
-      $searchResult.data('is-mutated', 1);
-    }
-  });
 
   function loadFacilityCheckPage() {
     var facilityCheckPage = chrome.extension.getURL('pages/facility-check.html')
@@ -83,6 +88,28 @@ function init(callback) {
       style: 'width: 100%; height: 100%; border: none;'
     });
     $body.append(frame);
+  }
+
+  function getSearchOptions() {
+    function parseOptions($options) {
+      var options = [];
+      var $option;
+      for (var i = 0; i < $options.length; i++) {
+        $option = $options.eq(i);
+        options.push({
+          display: $option.text(),
+          value: $option.val()
+        });
+      }
+      return options;
+    }
+    return {
+      dates: parseOptions($selectDate.children('option')),
+      facilities: parseOptions($selectFac.children('option')),
+      facilityTypes: parseOptions($selectFacType.children('option')),
+      sessions: parseOptions($selectSession.children('option')),
+      areas: parseOptions($selectArea.children('option'))
+    };
   }
 
   function resetSearchResult() {
@@ -219,19 +246,34 @@ function init(callback) {
    * Setup the page
    * * * * * * * * * * * * * * * * * * * * */
   loadFacilityCheckPage();
-  courtObserver.observe($searchResult[0], {childList: true, subtree: true});
 
-  function dispatch(action) {
-    chrome.runtime.sendMessage(action);
-  };
+  var courtObserver = new MutationObserver(function(mutations) {
+    if ($searchResult.data('no-result') === 1) {
+      $searchResult.data('no-result', 0);
+    } else {
+      $searchResult.data('is-mutated', 1);
+    }
+  });
+
+  var optionsObserver = new MutationObserver(function(mutations) {
+    dispatch(Action.create(Action.SEARCH_OPTIONS_REQUEST));
+  });
+
+  courtObserver.observe($searchResult[0], {childList: true, subtree: true});
+  optionsObserver.observe($selectDate[0], {childList: true});
+  optionsObserver.observe($selectFac[0], {childList: true});
+  optionsObserver.observe($selectFacType[0], {childList: true});
+  optionsObserver.observe($selectSession[0], {childList: true});
+  optionsObserver.observe($selectArea[0], {childList: true});
 
   var processors = {
     requestSearchOptions: function() {
-      console.log('TODO: request search options');
+      var searchOptions = getSearchOptions();
+      dispatch(Action.create(Action.SEARCH_OPTIONS_UPDATE, searchOptions));
     },
 
     requestFacilitiesSearch: function(input) {
-      return search(function(err, data) {
+      search(function(err, data) {
         dispatch(Action.create(Action.FACILITIES_SEARCH_RESPONSE, data, err));
       });
     }

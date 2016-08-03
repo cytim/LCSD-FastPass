@@ -5,7 +5,7 @@
     FACILITIES_SEARCH_REQUEST:  { enumerable: true, value: 'requestFacilitiesSearch' },
     FACILITIES_SEARCH_RESPONSE: { enumerable: true, value: 'processFacilitiesSearch' },
     SEARCH_OPTIONS_REQUEST:     { enumerable: true, value: 'requestSearchOptions' },
-    SEARCH_OPTIONS_RESPONSE:    { enumerable: true, value: 'processSearchOptions' },
+    SEARCH_OPTIONS_UPDATE:      { enumerable: true, value: 'updateSearchOptions' },
 
     create: {
       value: function(type, data, err) {

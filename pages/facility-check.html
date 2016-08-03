@@ -7,6 +7,7 @@
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
   <link rel="stylesheet" type="text/css" href="/css/materialize.min.css" media="screen"/>
   <link rel="stylesheet" type="text/css" href="/css/facility-check.css" media="screen"/>
+  <script src="/scripts/lodash.min.js"></script>
   <script src="/scripts/jquery.min.js"></script>
   <script src="/scripts/materialize.min.js"></script>
   <script src="/scripts/action.js"></script>
@@ -21,32 +22,32 @@
   <div class="container">
     <div class="row">
       <div class="input-field col s12 m6 l4">
-        <select id="selectDate">
-          <option value="" disabled>請選擇日期</option>
+        <select id="selectDate" class="search-criteria">
+          <option value="" disabled>Loading...</option>
         </select>
         <label>日期</label>
       </div>
       <div class="input-field col s12 m6 l4">
-        <select id="selectFacility">
-          <option value="" disabled>請選擇設施</option>
+        <select id="selectFacility" class="search-criteria">
+          <option value="" disabled>Loading...</option>
         </select>
         <label>設施</label>
       </div>
       <div class="input-field col s12 m6 l4">
-        <select id="selectFacilityType">
-          <option value="" disabled>請選擇種類</option>
+        <select id="selectFacilityType" class="search-criteria">
+          <option value="" disabled>Loading...</option>
         </select>
         <label>種類</label>
       </div>
       <div class="input-field col s12 m6 l4">
-        <select id="selectSession">
-          <option value="" disabled>請選擇時間</option>
+        <select id="selectSession" class="search-criteria">
+          <option value="" disabled>Loading...</option>
         </select>
         <label>時間</label>
       </div>
       <div class="input-field col s12 m6 l4">
-        <select id="selectArea">
-          <option value="" disabled>請選擇地區</option>
+        <select id="selectArea" class="search-criteria">
+          <option value="" disabled>Loading...</option>
         </select>
         <label>地區</label>
       </div>
