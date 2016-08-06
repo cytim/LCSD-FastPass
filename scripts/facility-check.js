@@ -23,6 +23,9 @@ $(function() {
         session: null,
         area: null
       },
+      filter: {
+        bookable: false
+      },
       venues: []
     }
   }
@@ -63,6 +66,28 @@ $(function() {
   }
 
   /* * * * * * * * * * * * * * * * * * * * *
+   * Filter
+   * * * * * * * * * * * * * * * * * * * * */
+
+  var filterVenuesBy = {
+    bookable: function(venues, mustBeBookable) {
+      if (!mustBeBookable)
+        return venues;
+      return _.filter(venues, function(venue) {
+        return _.some(venue.slots, function(slot) {
+          return slot.status === '';
+        });
+      });
+    }
+  };
+
+  function filterVenues(venues, filters) {
+    return _.reduce(filters, function(_venues, params, filter) {
+      return filterVenuesBy[filter](_venues, params);
+    }, venues);
+  }
+
+  /* * * * * * * * * * * * * * * * * * * * *
    * View Update
    * * * * * * * * * * * * * * * * * * * * */
 
@@ -94,7 +119,7 @@ $(function() {
   }
 
   function updateSearchResultView() {
-    var venues       = state.data.venues;
+    var venues       = filterVenues(state.data.venues, state.data.filter);
     var slots        = aggregateSlots(_.map(venues, function(venue) { return _.keys(venue.slots); }));
     var $panel       = $('#search-result-panel');
     var $panelHeader = $panel.find('.result-table-header');
@@ -224,6 +249,17 @@ $(function() {
       updateSearchInput(field, value);
       dispatchSearchInputUpdate(_.set({}, field, value));
     });
+  });
+
+  $('#result-filter #filter-bookable input[type="checkbox"]').change(function() {
+    setState({
+      data: _.defaults({
+        filter: _.defaults({
+          bookable: $(this).is(':checked')
+        }, state.data.filter)
+      }, state.data)
+    });
+    updateSearchResultView();
   });
 
   $('#search').click(function() {

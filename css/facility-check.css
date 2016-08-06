@@ -8,6 +8,12 @@ body {
   font-size: 100%;
 }
 
+.clearfix:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
 .container hr {
   margin: 40px 0;
   border: none;
@@ -73,6 +79,14 @@ nav {
   display: inline-block;
   width: 60px;
   text-align: center;
+}
+
+#result-filter #filter-bookable {
+  float: right;
+}
+#result-filter #filter-bookable label {
+  color: #666;
+  font-size: .95rem;
 }
 
 #result-empty {
