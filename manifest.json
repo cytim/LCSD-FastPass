@@ -1,8 +1,8 @@
 {
   "manifest_version": 2,
-  "name": "LCSD Bookable 執場易",
+  "name": "LCSD FastPass",
   "version": "1.0.0",
-  "description": "An assistant to check the available timeslot of LCSD facilities.",
+  "description": "協助你更快捷掌握康文署設施的BOOKING情況",
   "icons": {
     "16": "icons/16.png",
     "48": "icons/48.png",

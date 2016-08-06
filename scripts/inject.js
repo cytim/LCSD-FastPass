@@ -84,7 +84,7 @@ function init(callback) {
   function loadFacilityCheckPage() {
     var facilityCheckPage = chrome.extension.getURL('pages/facility-check.html')
     var frame = $('<iframe />', {
-      id: 'lcsd-bookable-facility-check',
+      id: 'lcsd-fastpass-facility-check',
       src: facilityCheckPage,
       style: 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; border: none;'
     });
