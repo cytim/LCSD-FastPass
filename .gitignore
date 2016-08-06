@@ -1,4 +1,4 @@
-# Created by https://www.gitignore.io/api/ln,linux,osx,windows
+# Created by https://www.gitignore.io/api/linux,osx,windows,sass
 
 #!! ERROR: ln is undefined. Use list command to see defined gitignore types !!#
 
@@ -63,3 +63,8 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
+
+### Sass ###
+.sass-cache/
+*.css.map
+
