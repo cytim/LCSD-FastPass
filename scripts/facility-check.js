@@ -1,39 +1,70 @@
 $(function() {
   /* * * * * * * * * * * * * * * * * * * * *
-   * Initialization
+   * Global Variables
    * * * * * * * * * * * * * * * * * * * * */
 
+  // Never modify the state object directly for data integrity
+  // Update should be done by calling `setState(...)`
   var state = {
     view: {
-      dates: [],
-      facilities: [],
-      facilityTypes: [],
-      sessions: [],
-      areas: []
+      search: {
+        date: [],
+        facility: [],
+        facilityType: [],
+        session: [],
+        area: []
+      }
     },
-    input: {
-      date: null,
-      facility: null,
-      facilityType: null,
-      session: null,
-      area: null
+    data: {
+      search: {
+        date: null,
+        facility: null,
+        facilityType: null,
+        session: null,
+        area: null
+      },
+      venues: []
     }
   }
 
-  $('select.search-criteria').material_select();
+  var $criteria = {
+    date: $('#selectDate'),
+    facility: $('#selectFacility'),
+    facilityType: $('#selectFacilityType'),
+    session: $('#selectSession'),
+    area: $('#selectArea')
+  };
 
-  $('#selectDate').change(function() { updateSearchInput('date', $(this).val()); });
-  $('#selectFacility').change(function() { updateSearchInput('facility', $(this).val()); });
-  $('#selectFacilityType').change(function() { updateSearchInput('facilityType', $(this).val()); });
-  $('#selectSession').change(function() { updateSearchInput('session', $(this).val()); });
-  $('#selectArea').change(function() { updateSearchInput('area', $(this).val()); });
+  var $loading = $('.loading');
 
   /* * * * * * * * * * * * * * * * * * * * *
    * Helpers
    * * * * * * * * * * * * * * * * * * * * */
+
+  function dispatch(action) {
+    chrome.runtime.sendMessage(action);
+  }
+
   function setState(newState) {
     return _.assign(state, newState);
   }
+
+  function updateSearchInput(key, val) {
+    var update = _.set({}, key, val);
+    setState({
+      data: _.defaults({
+        search: _.defaults(update, state.data.search)
+      }, state.data)
+    });
+  }
+
+  function aggregateSlots(arrayOfSlots) {
+    return _.sortBy(_.union.apply(_, arrayOfSlots));
+  }
+
+  /* * * * * * * * * * * * * * * * * * * * *
+   * View Update
+   * * * * * * * * * * * * * * * * * * * * */
 
   function updateSearchView() {
     function createOptions($select, options, selectedVal) {
@@ -49,19 +80,84 @@ $(function() {
       }
     }
 
-    createOptions($('#selectDate'), state.view.dates, state.input.date);
-    createOptions($('#selectFacility'), state.view.facilities, state.input.facility);
-    createOptions($('#selectFacilityType'), state.view.facilityTypes, state.input.facilityType);
-    createOptions($('#selectSession'), state.view.sessions, state.input.session);
-    createOptions($('#selectArea'), state.view.areas, state.input.area);
+    _.forOwn($criteria, function($criterion, field) {
+      createOptions($criterion, state.view.search[field], state.data.search[field]);
+      var firstValue;
+      if (state.view.search[field].length === 1) {
+        firstValue = $criterion.children('option:first-of-type').val();
+        $criterion.val(firstValue);
+        updateSearchInput(field, firstValue);
+      }
+    });
 
     $('select.search-criteria').material_select();
   }
 
-  function updateSearchInput(key, val) {
-    var update = {};
-    update[key] = val;
-    setState({ input: _.defaults(update, state.input) });
+  function updateSearchResultView() {
+    var venues       = state.data.venues;
+    var slots        = aggregateSlots(_.map(venues, function(venue) { return _.keys(venue.slots); }));
+    var $panel       = $('#search-result-panel');
+    var $panelHeader = $panel.find('.result-table-header');
+    var $panelBody   = $panel.find('.result-table-body');
+    if (!venues || !venues.length) {
+      $panel
+        .children('#result-table').hide().end()
+        .children('#result-empty').show().end();
+    }
+    else {
+      updateSearchResultTableHeader($panelHeader, slots);
+      updateSearchResultTableBody($panelBody, venues, slots);
+      $panel
+        .children('#result-empty').hide().end()
+        .children('#result-table').show().end();
+      $panelHeader.stick_in_parent();
+    }
+  }
+
+  function updateSearchResultTableHeader($header, slots) {
+    var $slots = $header.find('.location-row ul.slots').empty();
+    _.forEach(slots, function(slot) {
+      $slots.append($('<li>').text(slot.split('|')[0]));
+    });
+  }
+
+  function updateSearchResultTableBody($body, venues, slots) {
+    var $list = $body.children('ul.result-table-list').empty();
+    _.forEach(venues, function(venue) {
+      var $venueRow  = createLocationRow(venue, slots);
+      var $courtRows = $('<div class="court-rows"></div>');
+      _.forEach(venue.courts, function(court) {
+        $courtRows.append(createLocationRow(court, slots));
+      });
+      $list.append(
+        $('<li>')
+          .append($('<div class="collapsible-header"></div>').append($venueRow))
+          .append($('<div class="collapsible-body"></div>').append($courtRows))
+      );
+    });
+  }
+
+  function createLocationRow(location, slots) {
+    var $location = $('<div class="location"></div>').text(location.name);
+    var $slots    = $('<ul class="slots"></ul>');
+    _.forEach(slots, function(slot) {
+      var slotDetail = location.slots[slot];
+      if (slotDetail) {
+        $slots.append(
+          $('<li>', {
+            class: slotDetail.isPeak === true ? 'slot-peak' : slotDetail.isPeak === false ? 'slot-non-peak' : 'slot-disabled'
+          }).append(
+            $('<i>', {
+              class: 'fa ' + (slotDetail.status === '' ? 'fa-check slot-available' : 'fa-times slot-unavailable')
+            })
+          )
+        );
+      }
+      else {
+        $slots.append($('<li class="slot-disabled"><i class="fa fa-times slot-unavailable"></i></li>'));
+      }
+    });
+    return $('<div class="location-row"></div>').append($location).append($slots);
   }
 
   /* * * * * * * * * * * * * * * * * * * * *
@@ -69,17 +165,51 @@ $(function() {
    * * * * * * * * * * * * * * * * * * * * */
 
   var processors = {
-    updateSearchOptions: function(options) {
-      _.assign(state.view, options);
+    updateSearchCriteria: function(options) {
+      setState({
+        view: _.defaults({
+          search: _.defaults(options, state.view.search)
+        }, state.view)
+      });
       updateSearchView();
     },
 
     processFacilitiesSearch: function(venues) {
-      console.log('TODO: process facilities search')
-      console.log(venues);
+      setState({
+        data: _.defaults({
+          venues: venues
+        }, state.data)
+      });
+      updateSearchResultView();
+      $loading.fadeOut(250);
     }
   };
 
+  /* * * * * * * * * * * * * * * * * * * * *
+   * Dispatch
+   * * * * * * * * * * * * * * * * * * * * */
+
+  function dispatchSearchInputUpdate(input) {
+    dispatch(Action.create(Action.SEARCH_INPUT_UPDATE, input));
+  }
+
+  function dispatchFacilitiesSearchRequest() {
+    $loading.fadeIn(250, function() {
+      dispatch(Action.create(Action.FACILITIES_SEARCH_REQUEST));
+    });
+  }
+
+  function dispatchSearchCriteriaRequest() {
+    dispatch(Action.create(Action.SEARCH_CRITERIA_REQUEST));
+  }
+
+  /* * * * * * * * * * * * * * * * * * * * *
+   * Initialization
+   * * * * * * * * * * * * * * * * * * * * */
+
+  $('select.search-criteria').material_select();
+
+  // Listen to dispatched actions
   chrome.runtime.onMessage.addListener(function(action) {
     if (action.error)
       throw action.error;
@@ -87,17 +217,18 @@ $(function() {
       return processors[action.type](action.data);
   });
 
-  /* * * * * * * * * * * * * * * * * * * * *
-   * Dispatch
-   * * * * * * * * * * * * * * * * * * * * */
-
-  function dispatch(action) {
-    chrome.runtime.sendMessage(action);
-  }
-
-  $('#search').click(function() {
-    dispatch(Action.create(Action.FACILITIES_SEARCH_REQUEST, state.input));
+  // bind change listener to all $criteria
+  _.forOwn($criteria, function($criterion, field) {
+    $criterion.change(function() {
+      var value = $(this).val();
+      updateSearchInput(field, value);
+      dispatchSearchInputUpdate(_.set({}, field, value));
+    });
   });
 
-  dispatch(Action.create(Action.SEARCH_OPTIONS_REQUEST));
+  $('#search').click(function() {
+    dispatchFacilitiesSearchRequest();
+  });
+
+  dispatchSearchCriteriaRequest();
 });

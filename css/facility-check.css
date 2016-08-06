@@ -1,5 +1,5 @@
 html {
-  background: #fff;
+  background: #fafafa;
   font-size: 16px;
 }
 
@@ -8,6 +8,130 @@ body {
   font-size: 100%;
 }
 
+.container hr {
+  margin: 40px 0;
+  border: none;
+  border-top: 1px solid #9e9e9e;
+}
+
+.loading {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(255, 255, 255, .85);
+}
+
+.spinner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
 nav {
   margin-bottom: 30px;
+}
+
+.location-row {
+  padding: 0 1rem;
+  transition: background-color .25s ease;
+}
+.location-row:hover {
+  background-color: #f2f2f2;
+}
+.location-row:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+.location-row .slot-unavailable {
+  color: #dfdfdf;
+}
+.location-row .slot-available {
+  color: #26A65B;
+}
+.location-row .slot-peak {
+  background-color: #fff3d6;
+  transition: background-color .25s ease;
+}
+.location-row:hover .slot-peak {
+  background-color: #ffeab9;
+}
+.location-row .location {
+  float: left;
+}
+.location-row ul.slots {
+  float: right;
+  margin: 0;
+  list-style: none;
+}
+.location-row ul.slots > li {
+  display: inline-block;
+  width: 60px;
+  text-align: center;
+}
+
+#result-empty {
+  text-align: center;
+}
+
+#result-table .result-table-header {
+  margin: 0;
+  padding-top: 12px;
+  padding-bottom: 12px;
+  color: #fff;
+}
+#result-table .result-table-header .location-row {
+  padding: 0;
+}
+#result-table .result-table-header .location-row:hover {
+  background-color: inherit;
+}
+#result-table .collapsible-header {
+  padding: 0;
+}
+#result-table .collapsible-header i {
+  float: none;
+  display: inline;
+  width: auto;
+  margin: 0;
+  font-size: inherit;
+  line-height: inherit;
+  text-align: inherit;
+}
+#result-table .collapsible-body .court-rows {
+  line-height: 3rem;
+}
+
+#result-table .result-table-guide .row {
+  margin-bottom: 0;
+}
+#result-table .result-table-guide .location-row {
+  padding-top: 10px;
+  padding-bottom: 10px;
+  line-height: 2.5rem;
+}
+#result-table .result-table-guide .demo-box {
+  float: left;
+  width: 2.5rem;
+  height: 2.5rem;
+  margin-right: 10px;
+  box-shadow: 0 0 8px #ccc;
+  border-radius: 10px;
+  text-align: center;
+}
+#result-table .result-table-guide .demo-text {
+  float: left;
+  text-transform: uppercase;
+}
+
+
+@media screen and (min-width: 1400px) {
+  .location-row ul.slots > li {
+    width: 80px;
+  }
 }

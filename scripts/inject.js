@@ -65,13 +65,15 @@ function init(callback) {
   var $document      = $('frame[name="main"]').contents();
   var $body          = $document.find('body');
   var $searchResult  = $body.find('#searchResult');
-  var $selectDate    = $body.find('#datePanel > select');
-  var $selectFac     = $body.find('#facilityPanel > select');
-  var $selectFacType = $body.find('#facilityTypePanel > select');
-  var $selectSession = $body.find('#sessionTimePanel > select');
-  var $selectArea    = $body.find('#areaPanel > select');
+  var $criteria      = {
+    date:         $body.find('#datePanel > select'),
+    facility:     $body.find('#facilityPanel > select'),
+    facilityType: $body.find('#facilityTypePanel > select'),
+    session:      $body.find('#sessionTimePanel > select'),
+    area:         $body.find('#areaPanel > select')
+  };
 
-  if (!($document.length && $body.length && $searchResult.length && $selectArea.length))
+  if (!($document.length && $body.length && $searchResult.length && $criteria.area.length))
     return callback(new ResourceError('Document is not ready.'));
 
   /* * * * * * * * * * * * * * * * * * * * *
@@ -84,13 +86,12 @@ function init(callback) {
     var frame = $('<iframe />', {
       id: 'lcsd-bookable-facility-check',
       src: facilityCheckPage,
-      // style: 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; border: none;'
-      style: 'width: 100%; height: 100%; border: none;'
+      style: 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; border: none;'
     });
-    $body.append(frame);
+    $body.css('overflow', 'hidden').append(frame);
   }
 
-  function getSearchOptions() {
+  function getSearchCriteria() {
     function parseOptions($options) {
       var options = [];
       var $option;
@@ -103,30 +104,9 @@ function init(callback) {
       }
       return options;
     }
-    return {
-      dates: parseOptions($selectDate.children('option')),
-      facilities: parseOptions($selectFac.children('option')),
-      facilityTypes: parseOptions($selectFacType.children('option')),
-      sessions: parseOptions($selectSession.children('option')),
-      areas: parseOptions($selectArea.children('option'))
-    };
-  }
-
-  function resetSearchResult() {
-    $searchResult.data('no-result', -1).data('is-mutated', -1);
-    $searchResult.find('#searchResultTable').show();
-    if ($searchResult.find('#allResult').length) {
-      $searchResult.data('no-result', 1);
-      $searchResult.find('#allResult').remove();
-    }
-  }
-
-  function showSearchResult($courtStats) {
-    var $allResult = $('<div id="allResult"></div>');
-    for (var i = 0; i < $courtStats.length; i++) {
-      $allResult.append($courtStats[i]);
-    }
-    $searchResult.find('#searchResultTable').hide().after($allResult);
+    return _.mapValues($criteria, function($criterion) {
+      return parseOptions($criterion.children('option'));
+    });
   }
 
   function parseSearchResults($table) {
@@ -143,9 +123,9 @@ function init(callback) {
       var $cols = $row.children('td');
       var $col;
       var venue = { name: $cols.eq(1).text(), slots: {} };
-      for (var i = 2; i < $cols.length && i < slots.length; i++) {
+      for (var i = 2; i < $cols.length; i++) {
         $col = $cols.eq(i);
-        venue.slots[slots[i]] = {
+        venue.slots[slots[i-2]] = {
           status: $col.children('.gwt-HTML').text().trim(),
           isPeak: $col.is('.timeslotCellPeak') ? true : $col.is('.timeslotCellNonPeak') ? false : null
         };
@@ -173,18 +153,17 @@ function init(callback) {
     return venues;
   }
 
-  function checkVenueAvailability($courtStats, venues, $venuePrefs, $locPrefs, callback) {
+  function checkVenueAvailability(results, venues, $venuePrefs, $locPrefs, callback) {
     if ($searchResult.data('is-mutated') === 0)
       return callback(new ResourceError('Court statistic is not ready.'));
 
     if ($searchResult.data('is-mutated') === 1) {
       var $table = $searchResult.find('#searchResultTable > table').first().clone().removeAttr('id');
-      console.log(parseSearchResults($table));
-      $courtStats.push($table);
+      results = results.concat(parseSearchResults($table));
     }
 
     if (!venues.length)
-      return callback(null, $courtStats);
+      return callback(null, results);
 
     var venue, $locations;
     for (var i = 0; i < $venuePrefs.length; i++) {
@@ -201,7 +180,7 @@ function init(callback) {
     $searchResult.data('is-mutated', 0);
     $body.find('#searchButtonPanel .actionBtnContinue, #searchButtonPanel .actionBtnContinue_hover').click();
 
-    poll(checkVenueAvailability.bind(this, $courtStats, venues, $venuePrefs, $locPrefs), callback);
+    poll(checkVenueAvailability.bind(this, results, venues, $venuePrefs, $locPrefs), callback);
   }
 
   function checkAvailability(callback) {
@@ -234,11 +213,11 @@ function init(callback) {
   }
 
   function search(callback) {
-    resetSearchResult();
-    poll(checkAvailability, function(err, $courtStats) {
-      if (err) throw err;
-      showSearchResult($courtStats);
-      callback(err, $courtStats);
+    $searchResult.data('no-result', -1).data('is-mutated', -1);
+    poll(checkAvailability, function(err, results) {
+      if (err instanceof ResourceError || err instanceof InternalError)
+        throw err;
+      callback(err, results);
     });
   }
 
@@ -256,23 +235,34 @@ function init(callback) {
   });
 
   var optionsObserver = new MutationObserver(function(mutations) {
-    dispatch(Action.create(Action.SEARCH_OPTIONS_REQUEST));
+    dispatch(Action.create(Action.SEARCH_CRITERIA_REQUEST));
   });
 
   courtObserver.observe($searchResult[0], {childList: true, subtree: true});
-  optionsObserver.observe($selectDate[0], {childList: true});
-  optionsObserver.observe($selectFac[0], {childList: true});
-  optionsObserver.observe($selectFacType[0], {childList: true});
-  optionsObserver.observe($selectSession[0], {childList: true});
-  optionsObserver.observe($selectArea[0], {childList: true});
+  _.forOwn($criteria, function($criterion) {
+    optionsObserver.observe($criterion[0], {childList: true});
+  });
 
   var processors = {
-    requestSearchOptions: function() {
-      var searchOptions = getSearchOptions();
-      dispatch(Action.create(Action.SEARCH_OPTIONS_UPDATE, searchOptions));
+    updateSearchInput: function(input) {
+      function update($select, value) {
+        if ($select.val() != value) {
+          $select.val(value);
+          $select[0].dispatchEvent(changeEvent);
+        }
+      }
+
+      _.forOwn(input, function(value, field) {
+        update($criteria[field], value);
+      });
     },
 
-    requestFacilitiesSearch: function(input) {
+    requestSearchCriteria: function() {
+      var searchCriteria = getSearchCriteria();
+      dispatch(Action.create(Action.SEARCH_CRITERIA_UPDATE, searchCriteria));
+    },
+
+    requestFacilitiesSearch: function() {
       search(function(err, data) {
         dispatch(Action.create(Action.FACILITIES_SEARCH_RESPONSE, data, err));
       });

@@ -5,10 +5,12 @@
   <meta charset=utf-8 />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link rel="stylesheet" type="text/css" href="/css/font-awesome.min.css" media="screen"/>
   <link rel="stylesheet" type="text/css" href="/css/materialize.min.css" media="screen"/>
   <link rel="stylesheet" type="text/css" href="/css/facility-check.css" media="screen"/>
   <script src="/scripts/lodash.min.js"></script>
   <script src="/scripts/jquery.min.js"></script>
+  <script src="/scripts/jquery.sticky-kit.min.js"></script>
   <script src="/scripts/materialize.min.js"></script>
   <script src="/scripts/action.js"></script>
   <script src="/scripts/facility-check.js"></script>
@@ -19,41 +21,107 @@
       <a href="#" class="brand-logo center">LCSD Bookable</a>
     </div>
   </nav>
+
   <div class="container">
-    <div class="row">
-      <div class="input-field col s12 m6 l4">
-        <select id="selectDate" class="search-criteria">
-          <option value="" disabled>Loading...</option>
-        </select>
-        <label>日期</label>
+    <div id="search-panel" class="card-panel">
+      <div class="row">
+        <div class="input-field col s12 m6 l4">
+          <select id="selectDate" class="search-criteria">
+            <option value="" disabled>Loading...</option>
+          </select>
+          <label>日期</label>
+        </div>
+        <div class="input-field col s12 m6 l4">
+          <select id="selectFacility" class="search-criteria">
+            <option value="" disabled>Loading...</option>
+          </select>
+          <label>設施</label>
+        </div>
+        <div class="input-field col s12 m6 l4">
+          <select id="selectFacilityType" class="search-criteria">
+            <option value="" disabled>Loading...</option>
+          </select>
+          <label>種類</label>
+        </div>
+        <div class="input-field col s12 m6 l4">
+          <select id="selectSession" class="search-criteria">
+            <option value="" disabled>Loading...</option>
+          </select>
+          <label>時間</label>
+        </div>
+        <div class="input-field col s12 m6 l4">
+          <select id="selectArea" class="search-criteria">
+            <option value="" disabled>Loading...</option>
+          </select>
+          <label>地區</label>
+        </div>
       </div>
-      <div class="input-field col s12 m6 l4">
-        <select id="selectFacility" class="search-criteria">
-          <option value="" disabled>Loading...</option>
-        </select>
-        <label>設施</label>
-      </div>
-      <div class="input-field col s12 m6 l4">
-        <select id="selectFacilityType" class="search-criteria">
-          <option value="" disabled>Loading...</option>
-        </select>
-        <label>種類</label>
-      </div>
-      <div class="input-field col s12 m6 l4">
-        <select id="selectSession" class="search-criteria">
-          <option value="" disabled>Loading...</option>
-        </select>
-        <label>時間</label>
-      </div>
-      <div class="input-field col s12 m6 l4">
-        <select id="selectArea" class="search-criteria">
-          <option value="" disabled>Loading...</option>
-        </select>
-        <label>地區</label>
+      <div class="row">
+        <a id="search" class="col s12 m6 l4 offset-m3 offset-l4 waves-effect waves-light light-blue btn-large">Check場</a>
       </div>
     </div>
-    <div class="row">
-      <a id="search" class="col s12 m6 l4 offset-m3 offset-l4 waves-effect waves-light light-blue btn-large">查詢Book場情況</a>
+
+    <div id="search-result-panel">
+      <!-- No Result -->
+      <div id="result-empty" class="card-panel">
+        <h5 class="light-blue-text text-darken-1">- 冇野好睇 -</h5>
+      </div>
+
+      <!-- Display Result -->
+      <div id="result-table" style="display: none;">
+        <div class="result-table-header light-blue card-panel">
+          <div class="location-row">
+            <ul class="slots"></ul>
+          </div>
+        </div>
+        <div class="result-table-body">
+          <ul class="result-table-list collapsible" data-collapsible="accordion"></ul>
+        </div>
+        <div class="result-table-guide card-panel">
+          <div class="row">
+            <div class="col s12 m6 l3">
+              <div class="location-row">
+                <div class="demo-box slot-non-peak">&nbsp;</div>
+                <div class="demo-text">平少少</div>
+              </div>
+            </div>
+            <div class="col s12 m6 l3">
+              <div class="location-row">
+                <div class="demo-box slot-peak">&nbsp;</div>
+                <div class="demo-text">貴少少</div>
+              </div>
+            </div>
+            <div class="col s12 m6 l3">
+              <div class="location-row">
+                <div class="demo-box"><i class="fa fa-times slot-unavailable"></i></div>
+                <div class="demo-text">冇得Book</div>
+              </div>
+            </div>
+            <div class="col s12 m6 l3">
+              <div class="location-row">
+                <div class="demo-box"><i class="fa fa-check slot-available"></i></div>
+                <div class="demo-text">可以Book</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="loading">
+    <div class="spinner">
+      <div class="preloader-wrapper big active">
+        <div class="spinner-layer spinner-blue-only">
+          <div class="circle-clipper left">
+            <div class="circle"></div>
+          </div><div class="gap-patch">
+            <div class="circle"></div>
+          </div><div class="circle-clipper right">
+            <div class="circle"></div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </body>
