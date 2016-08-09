@@ -31,14 +31,16 @@ $(function() {
   }
 
   var $criteria = {
-    date: $('#selectDate'),
-    facility: $('#selectFacility'),
-    facilityType: $('#selectFacilityType'),
-    session: $('#selectSession'),
-    area: $('#selectArea')
+    date: $('#select-date'),
+    facility: $('#select-facility'),
+    facilityType: $('#select-facility-type'),
+    session: $('#select-session'),
+    area: $('#select-area')
   };
 
   var $loading = $('.loading');
+
+  var $searchPanel = $('#search-panel');
 
   /* * * * * * * * * * * * * * * * * * * * *
    * Helpers
@@ -232,6 +234,10 @@ $(function() {
    * Initialization
    * * * * * * * * * * * * * * * * * * * * */
 
+  jQuery.extend(jQuery.validator.messages, {
+    required: "必填"
+  });
+
   $('select.search-criteria').material_select();
 
   // Listen to dispatched actions
@@ -248,6 +254,7 @@ $(function() {
       var value = $(this).val();
       updateSearchInput(field, value);
       dispatchSearchInputUpdate(_.set({}, field, value));
+      $(this).valid();
     });
   });
 
@@ -262,8 +269,29 @@ $(function() {
     updateSearchResultView();
   });
 
-  $('#search').click(function() {
-    dispatchFacilitiesSearchRequest();
+  // The configuration is valid for select elements only.
+  // It should be updated once there are other input
+  // elements to validate.
+  $searchPanel.validate({
+    ignore: '.select-dropdown',
+    errorClass: 'validate-invalid',
+    validClass: 'validate-valid',
+    highlight: function(element, invalid, valid) {
+      $(element)
+        .removeClass(valid).addClass(invalid)
+        .parent().removeClass(valid).addClass(invalid)
+    },
+    unhighlight: function(element, invalid, valid) {
+      $(element)
+        .removeClass(invalid).addClass(valid)
+        .parent().removeClass(invalid).addClass(valid)
+    },
+    errorPlacement: function(error, element) {
+      error.insertBefore(element.parent());
+    },
+    submitHandler: function() {
+      dispatchFacilitiesSearchRequest();
+    }
   });
 
   dispatchSearchCriteriaRequest();

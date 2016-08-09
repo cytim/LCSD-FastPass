@@ -38,8 +38,35 @@ body {
   transform: translate(-50%, -50%);
 }
 
+select {
+  position: absolute;
+  display: inline !important;
+  width: 0;
+  height: 0;
+  padding: 0;
+  border: 0;
+}
+
 nav {
   margin-bottom: 30px;
+}
+
+label.validate-invalid {
+  position: absolute;
+  top: 49px;
+  font-size: .8rem;
+  color: #f44336;
+}
+
+/* Override Materialize CSS to correct the dropdown validation styling */
+.select-wrapper input.select-dropdown.valid,
+.select-wrapper input.select-dropdown.invalid {
+  border-bottom: 1px solid #9e9e9e;
+  box-shadow: none;
+}
+.select-wrapper.validate-invalid input.select-dropdown {
+  border-bottom: 1px solid #f44336;
+  box-shadow: 0 1px 0 0 #f44336;
 }
 
 .location-row {

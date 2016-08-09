@@ -10,6 +10,7 @@
   <link rel="stylesheet" type="text/css" href="/css/facility-check.css" media="screen"/>
   <script src="/scripts/lodash.min.js"></script>
   <script src="/scripts/jquery.min.js"></script>
+  <script src="/scripts/jquery.validate.min.js"></script>
   <script src="/scripts/jquery.sticky-kit.min.js"></script>
   <script src="/scripts/materialize.min.js"></script>
   <script src="/scripts/action.js"></script>
@@ -23,43 +24,43 @@
   </nav>
 
   <div class="container">
-    <div id="search-panel" class="card-panel">
+    <form id="search-panel" class="card-panel">
       <div class="row">
         <div class="input-field col s12 m6 l4">
-          <select id="selectDate" class="search-criteria">
+          <select name="date" id="select-date" class="search-criteria" required>
             <option value="" disabled>Loading...</option>
           </select>
           <label>日期</label>
         </div>
         <div class="input-field col s12 m6 l4">
-          <select id="selectFacility" class="search-criteria">
+          <select name="facility" id="select-facility" class="search-criteria" required>
             <option value="" disabled>Loading...</option>
           </select>
           <label>設施</label>
         </div>
         <div class="input-field col s12 m6 l4">
-          <select id="selectFacilityType" class="search-criteria">
+          <select name="facility-type" id="select-facility-type" class="search-criteria" required>
             <option value="" disabled>Loading...</option>
           </select>
           <label>種類</label>
         </div>
         <div class="input-field col s12 m6 l4">
-          <select id="selectSession" class="search-criteria">
+          <select name="session" id="select-session" class="search-criteria" required>
             <option value="" disabled>Loading...</option>
           </select>
-          <label>時間</label>
+          <label>時段</label>
         </div>
         <div class="input-field col s12 m6 l4">
-          <select id="selectArea" class="search-criteria">
+          <select name="area" id="select-area" class="search-criteria" required>
             <option value="" disabled>Loading...</option>
           </select>
           <label>地區</label>
         </div>
       </div>
       <div class="row">
-        <a id="search" class="col s12 m6 l4 offset-m3 offset-l4 waves-effect waves-light btn-large">Check場</a>
+        <button type="submit" class="col s12 m6 l4 offset-m3 offset-l4 waves-effect waves-light btn-large">Check場</button>
       </div>
-    </div>
+    </form>
 
     <div id="search-result-panel">
       <!-- Filter -->
