@@ -24,7 +24,7 @@ $(function() {
         area: null
       },
       filter: {
-        bookable: false
+        bookable: true
       },
       venues: []
     }
@@ -38,9 +38,9 @@ $(function() {
     area: $('#select-area')
   };
 
-  var $loading = $('.loading');
-
+  var $loading     = $('.loading');
   var $searchPanel = $('#search-panel');
+  var $resultPanel = $('#search-result-panel');
 
   /* * * * * * * * * * * * * * * * * * * * *
    * Helpers
@@ -108,7 +108,13 @@ $(function() {
     }
 
     _.forOwn($criteria, function($criterion, field) {
-      createOptions($criterion, state.view.search[field], state.data.search[field]);
+      var options     = state.view.search[field];
+      var selectedVal = state.data.search[field];
+      // special handling for [area] for better user experience
+      if (field === 'area' && options.length > 2) {
+        options.unshift(options.reverse().pop());
+      }
+      createOptions($criterion, options, selectedVal);
       var firstValue;
       if (state.view.search[field].length === 1) {
         firstValue = $criterion.children('option:first-of-type').val();
@@ -121,23 +127,26 @@ $(function() {
   }
 
   function updateSearchResultView() {
-    var venues       = filterVenues(state.data.venues, state.data.filter);
-    var slots        = aggregateSlots(_.map(venues, function(venue) { return _.keys(venue.slots); }));
-    var $panel       = $('#search-result-panel');
-    var $panelHeader = $panel.find('.result-table-header');
-    var $panelBody   = $panel.find('.result-table-body');
+    var venues        = filterVenues(state.data.venues, state.data.filter);
+    var slots         = aggregateSlots(_.map(venues, function(venue) { return _.keys(venue.slots); }));
+    var $panel        = $resultPanel;
+    var $panelMessage = $panel.children('#result-message');
+    var $panelTable   = $panel.children('#result-table');
+    var $tableHeader  = $panelTable.children('.result-table-header');
+    var $tableBody    = $panelTable.children('.result-table-body');
+
     if (!venues || !venues.length) {
-      $panel
-        .children('#result-table').hide().end()
-        .children('#result-empty').show().end();
+      $panelTable.hide();
+      $panelMessage
+        .children('.message').text('殘念 ( ´･･)ﾉ(._.`)').end()
+        .show();
     }
     else {
-      updateSearchResultTableHeader($panelHeader, slots);
-      updateSearchResultTableBody($panelBody, venues, slots);
-      $panel
-        .children('#result-empty').hide().end()
-        .children('#result-table').show().end();
-      $panelHeader.stick_in_parent();
+      updateSearchResultTableHeader($tableHeader, slots);
+      updateSearchResultTableBody($tableBody, venues, slots);
+      $panelMessage.hide();
+      $panelTable.show();
+      $tableHeader.stick_in_parent();
     }
   }
 
