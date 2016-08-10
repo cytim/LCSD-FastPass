@@ -1,24 +1,25 @@
 {
   "manifest_version": 2,
   "name": "LCSD FastPass",
-  "version": "1.1.0",
+  "version": "2.0.0",
   "description": "協助你更快捷掌握康文署設施的BOOKING情況",
   "icons": {
     "16": "icons/16.png",
     "48": "icons/48.png",
     "128": "icons/128.png"
   },
+  "permissions": ["storage", "alarms", "notifications"],
   "browser_action": {
     "default_popup": "pages/popup.html"
   },
   "background": {
-    "scripts": ["scripts/background.js"],
+    "scripts": ["scripts/lodash.min.js", "scripts/moment.min.js", "scripts/moment.locale.zh-tw.min.js", "scripts/fastpass.js", "scripts/event-page.js"],
     "persistent": false
   },
   "content_scripts": [
     {
       "matches": ["*://t2.leisurelink.lcsd.gov.hk/lcsd/leisurelink/dispatchFlow.do*"],
-      "js": ["scripts/lodash.min.js", "scripts/jquery.min.js", "scripts/action.js", "scripts/inject.js"]
+      "js": ["scripts/lodash.min.js", "scripts/jquery.min.js", "scripts/action.js", "scripts/fastpass.js", "scripts/inject.js"]
     }
   ],
   "minimum_chrome_version": "40",
