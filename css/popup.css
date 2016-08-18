@@ -24,10 +24,60 @@ h1, h2, h3, h4, h5, h6 {
 
 #actions {
   width: 100%;
-  margin: 0 auto;
-  padding: 15px;
+  margin: 15px auto;
 }
 #actions .btn,
 #actions .btn-large {
   width: 100%;
+}
+
+#reminders .calendar .days .day.facility-check-reminder:after,
+#reminders .calendar-guide .guide .demo-box .day.facility-check-reminder:after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0 0 10px 10px;
+  border-color: transparent transparent #66bb6a transparent;
+}
+
+#reminders .calendar-guide {
+  margin: 10px -10px;
+}
+#reminders .calendar-guide:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+#reminders .calendar-guide .guide {
+  float: left;
+  width: 50%;
+  padding: 0 10px;
+  font-size: 12px;
+  line-height: 30px;
+}
+#reminders .calendar-guide .guide:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+#reminders .calendar-guide .guide .demo-box {
+  float: left;
+  width: 30px;
+  overflow: hidden;
+  background-color: #f9f9f9;
+  box-shadow: 0 0 5px #cecece;
+  border-radius: 3px;
+  text-align: center;
+  cursor: default;
+}
+#reminders .calendar-guide .guide .demo-box .day {
+  position: relative;
+}
+#reminders .calendar-guide .guide .demo-text {
+  float: left;
+  margin-left: 10px;
 }

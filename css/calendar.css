@@ -1,0 +1,91 @@
+.calendar {
+  line-height: 40px;
+  cursor: default;
+}
+
+.calendar .controls {
+  position: relative;
+  background-color: #039be5;
+  text-align: center;
+  font-weight: bold;
+  color: #fff;
+}
+.calendar .controls .previous-button,
+.calendar .controls .next-button {
+  position: absolute;
+  top: 0;
+  width: 40px;
+  cursor: pointer;
+  transition: background-color .15s ease-in;
+}
+.calendar .controls .previous-button:hover,
+.calendar .controls .next-button:hover {
+  background-color: #03a9f4;
+}
+.calendar .controls .previous-button {
+  left: 0;
+}
+.calendar .controls .next-button {
+  right: 0;
+}
+
+.calendar .day {
+  float: left;
+  position: relative;
+  width: 14.2857%;
+  font-size: 14px;
+}
+
+.calendar .days-of-week {
+  background-color: #039be5;
+  text-align: center;
+  font-weight: bold;
+  color: #fff;
+}
+.calendar .days-of-week:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+.calendar .days {
+  text-align: center;
+  font-weight: bold;
+}
+.calendar .days:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+.calendar .days .day {
+  color: #555;
+  background-color: #ebebeb;
+  cursor: pointer;
+  transition: background-color .15s ease-in;
+}
+.calendar .days .day:hover {
+  background-color: #f3f3f3;
+}
+.calendar .days .day.past {
+  background-color: #e7e7e7;
+  font-weight: normal;
+  color: #888;
+}
+.calendar .days .day.past,
+.calendar .days .day.today {
+  cursor: default !important;
+}
+.calendar .days .day.checkable {
+  background-color: #f9f9f9;
+}
+.calendar .days .day.checkable:hover {
+  background-color: #efefef;
+}
+.calendar .days .day.today,
+.calendar .days .day.today:hover {
+  background-color: #4fc3f7;
+  color: #fff;
+}
+.calendar .days .day.adjacent-month {
+  color: #aaa;
+}

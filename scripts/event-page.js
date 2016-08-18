@@ -5,7 +5,7 @@
 function createReminderNotification() {
   fastpass.storage.get('reminders', function(reminders) {
     var begin          = moment().endOf('day');
-    var end            = begin.clone().add(fastpass.forecastPeriod, 'days');
+    var end            = begin.clone().add(fastpass.forecastPeriod - 1, 'days');
     var facilityChecks = _.remove(reminders, function(reminder) {
       return reminder.type === 'FACILITY_CHECK' && begin.isSameOrAfter(reminder.expiry);
     });

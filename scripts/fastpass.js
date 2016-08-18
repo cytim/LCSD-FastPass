@@ -5,7 +5,7 @@
 (function(win) {
   var _fastpass = {};
 
-  _fastpass.forecastPeriod = 10;
+  _fastpass.forecastPeriod = 11;  // include today
   _fastpass.lcsdFacilityCheckingUrl = 'http://w1.leisurelink.lcsd.gov.hk/leisurelink/application/checkCode.do?flowId=4&lang=TC';
 
   /**

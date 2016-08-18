@@ -6,16 +6,58 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
   <link rel="stylesheet" type="text/css" href="/css/materialize.custom.css" media="screen"/>
+  <link rel="stylesheet" type="text/css" href="/css/calendar.css" />
   <link rel="stylesheet" type="text/css" href="/css/popup.css" />
+  <script src="/scripts/lodash.min.js"></script>
+  <script src="/scripts/moment.min.js"></script>
+  <script src="/scripts/moment.locale.zh-tw.min.js"></script>
   <script src="/scripts/jquery.min.js"></script>
   <script src="/scripts/materialize.min.js"></script>
+  <script src="/scripts/clndr.min.js"></script>
   <script src="/scripts/fastpass.js"></script>
   <script src="/scripts/popup.js"></script>
 </head>
 <body>
-  <div id="actions">
+  <section id="reminders">
+    <script id="reminder-calendar-template" type="text/template">
+      <div class="calendar">
+        <div class="controls">
+          <div class="month"><%= month %></div>
+          <div class="previous-button">&#9668;</div>
+          <div class="next-button">&#9658;</div>
+        </div>
+        <div class="days-of-week">
+          <% _.forEach(daysOfTheWeek, function(day) { %>
+            <div class="day"><%= day %></div>
+          <% }); %>
+        </div>
+        <div class="days">
+          <% _.forEach(days, function(day) { %>
+            <% var classes = _.reduce(day.events, function(_classes, event) {
+              return _classes + ' ' + event.type;
+            }, day.classes); %>
+            <div class="<%= classes %>" id="<%= day.id %>">
+              <span class="day-number"><%= day.day %></span>
+            </div>
+          <% }); %>
+        </div>
+      </div>
+    </script>
+    <div id="reminder-calendar"></div>
+    <div class="calendar-guide">
+      <div class="guide">
+        <div class="demo-box">
+          <div class="day facility-check-reminder"><span class="day-number">31</span></div>
+        </div>
+        <div class="demo-text">提醒CHECK場</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="actions">
     <a id="redirect" class="waves-effect waves-light btn-large">立即Check場</a>
-  </div>
-  <div id="site-title">LCSD FastPass (v2.0.0)</div>
+  </section>
+
+  <section id="site-title">LCSD FastPass (v2.0.0)</section>
 </body>
 </html>
