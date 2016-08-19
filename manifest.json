@@ -13,13 +13,13 @@
     "default_popup": "pages/popup.html"
   },
   "background": {
-    "scripts": ["scripts/lodash.min.js", "scripts/moment.min.js", "scripts/moment.locale.zh-tw.min.js", "scripts/fastpass.js", "scripts/event-page.js"],
+    "scripts": ["scripts/libraries/lodash.min.js", "scripts/libraries/moment.min.js", "scripts/libraries/moment.locale.zh-tw.min.js", "scripts/libraries/fastpass.js", "scripts/event-page.js"],
     "persistent": false
   },
   "content_scripts": [
     {
       "matches": ["*://t2.leisurelink.lcsd.gov.hk/lcsd/leisurelink/dispatchFlow.do*"],
-      "js": ["scripts/lodash.min.js", "scripts/jquery.min.js", "scripts/action.js", "scripts/fastpass.js", "scripts/inject.js"]
+      "js": ["scripts/libraries/lodash.min.js", "scripts/libraries/jquery.min.js", "scripts/libraries/fastpass.js", "scripts/action.js", "scripts/inject.js"]
     }
   ],
   "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'",
