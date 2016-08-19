@@ -40,5 +40,81 @@
     });
   };
 
+  /**
+   * A table is a database-table-like data structure. The data should be stored
+   * as an array to simulate table rows. The data should also have the same
+   * structure (i.e. same table columns).
+   * If the data does not fit the requirement, using this module will crash the
+   * system.
+   */
+  _storage.table = {};
+
+  /**
+   * Create a table record.
+   * @param {String} tableName
+   * @param {*} newRecord
+   * @param {Function} [callback] - callback(newRecord)
+   */
+  _storage.table.create = function(tableName, newRecord, callback) {
+    callback = callback || function() {};
+    _storage.get(tableName, function(records) {
+      records.push(newRecord);
+      _storage.set(tableName, records, _.partial(callback, newRecord));
+    });
+  };
+
+  /**
+   * Retrieve all table record that matches the predicate.
+   * All record will be returned if `predicate` is not provided.
+   * @param {String} tableName
+   * @param {Function} [predicate]
+   * @param {Function} callback - callback(matchedRecords)
+   */
+  _storage.table.find = function(tableName, predicate, callback) {
+    if (!callback && !predicate)
+      throw new Error('Error: invalid arguments');
+    _storage.get(tableName, function(records) {
+      if (!callback)
+        return predicate(records);
+      callback(_.filter(records, predicate));
+    });
+  }
+
+  /**
+   * Update all table record that matches the predicate.
+   * @param {String} tableName
+   * @param {*} newRecord
+   * @param {Function} predicate
+   * @param {Function} [callback] - callback(updatedRecords, originalRecords)
+   */
+  _storage.table.update = function(tableName, newRecord, predicate, callback) {
+    callback = callback || function() {};
+    _storage.get(tableName, function(records) {
+      var original = [];
+      var updated  = [];
+      _.forEach(records, function(record) {
+        if (predicate(record)) {
+          original.push(_.cloneDeep(record));
+          updated.push(_.assign(record, newRecord));
+        }
+      });
+      _storage.set(tableName, records, _.partial(callback, updated, original));
+    });
+  };
+
+  /**
+   * Remove all table record that matches the predicate.
+   * @param {String} tableName
+   * @param {Function} predicate
+   * @param {Function} [callback] - callback(removedRecords)
+   */
+  _storage.table.remove = function(tableName, predicate, callback) {
+    callback = callback || function() {};
+    _storage.get(tableName, function(records) {
+      var removed = _.remove(records, predicate);
+      _storage.set(tableName, records, _.partial(callback, removed));
+    });
+  };
+
   win.storage = _storage;
 }(window));
