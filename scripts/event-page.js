@@ -3,7 +3,7 @@
  * * * * * * * * * * * * * * * * * * * * */
 
 function createReminderNotification() {
-  fastpass.storage.get('reminders', function(reminders) {
+  storage.get('reminders', function(reminders) {
     var begin          = moment().endOf('day');
     var end            = begin.clone().add(fastpass.forecastPeriod - 1, 'days');
     var facilityChecks = _.remove(reminders, function(reminder) {
@@ -11,7 +11,7 @@ function createReminderNotification() {
     });
     if (!facilityChecks.length)
       return;
-    fastpass.storage.set('reminders', reminders);
+    storage.set('reminders', reminders);
     chrome.notifications.create('FACILITY_CHECK', {
       type: 'basic',
       iconUrl: 'icons/48.png',
@@ -31,11 +31,11 @@ chrome.runtime.onInstalled.addListener(function() {
   chrome.alarms.create({periodInMinutes: 0.05});
 
   // initialize the app with default configurations
-  fastpass.storage.source.get(function(store) {
+  storage.source.get(function(store) {
     var update = {
       reminders: store.reminders || []
     };
-    fastpass.storage.source.set(update);
+    storage.source.set(update);
   });
 });
 

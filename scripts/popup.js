@@ -60,7 +60,7 @@ $(function() {
       else {
         reminders.push(targetReminder);
       }
-      fastpass.storage.set('reminders', reminders);
+      storage.set('reminders', reminders);
     }
 
     /* * * * * * * * * * * * * * * * * * * * *
@@ -92,5 +92,5 @@ $(function() {
   /* * * * * * * * * * * * * * * * * * * * *
    * Page Pre-initialization
    * * * * * * * * * * * * * * * * * * * * */
-  fastpass.storage.get('reminders', init);
+  storage.get('reminders', init);
 });

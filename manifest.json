@@ -13,7 +13,7 @@
     "default_popup": "pages/popup.html"
   },
   "background": {
-    "scripts": ["scripts/libraries/lodash.min.js", "scripts/libraries/moment.min.js", "scripts/libraries/moment.locale.zh-tw.min.js", "scripts/libraries/fastpass.js", "scripts/event-page.js"],
+    "scripts": ["scripts/libraries/lodash.min.js", "scripts/libraries/moment.min.js", "scripts/libraries/moment.locale.zh-tw.min.js", "scripts/libraries/storage.js", "scripts/libraries/fastpass.js", "scripts/event-page.js"],
     "persistent": false
   },
   "content_scripts": [
