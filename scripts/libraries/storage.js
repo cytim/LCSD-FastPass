@@ -50,12 +50,124 @@
   _storage.table = {};
 
   /**
+   * Reference to _storage.table._operator.create
+   */
+  _storage.table.create = function(tableName, newRecord, callback) {
+    _storage.table._queue.addTask({
+      action: 'create',
+      tableName: tableName,
+      argv: [newRecord, callback]
+    });
+  };
+
+  /**
+   * Reference to _storage.table._operator.find
+   */
+  _storage.table.find = function(tableName, predicate, callback) {
+    if (!callback) {
+      callback = predicate;
+      predicate = undefined;
+    }
+    _storage.table._queue.addTask({
+      action: 'find',
+      tableName: tableName,
+      argv: [predicate, callback]
+    });
+  };
+
+  /**
+   * Reference to _storage.table._operator.update
+   */
+  _storage.table.update = function(tableName, newRecord, predicate, callback) {
+    _storage.table._queue.addTask({
+      action: 'update',
+      tableName: tableName,
+      argv: [newRecord, predicate, callback]
+    });
+  };
+
+  /**
+   * Reference to _storage.table._operator.remove
+   */
+  _storage.table.remove = function(tableName, predicate, callback) {
+    _storage.table._queue.addTask({
+      action: 'remove',
+      tableName: tableName,
+      argv: [predicate, callback]
+    });
+  };
+
+  /**
+   * A queue to control the CRUD operation on a table.
+   * The table is locked when any task is taking action. Subsequence query to
+   * the same table will be queued and execute as soon as the current task
+   * completes.
+   *
+   * The goal of this implementation is to guarantee data integrity within a
+   * page. For example, two subsequence `create` operation is guaranteed not to
+   * overwrite each other.
+   *
+   * IMPORTANT:
+   * 1.  If more than one `storage` instance is loaded, or Chrome storage is
+   *     manipulated outside the `storage.table` instance, the data may corrupt
+   *     unexpectedly.
+   * 2.  Queued tasks will be abandoned when user closes the page before the
+   *     tasks are executed.
+   * 3.  The above issues could be minimized if the implmentation is moved to
+   *     a persistent background page, which may be deprecated by Google very
+   *     soon. This may also be over-engineered as a Chrome Extension.
+   */
+  _storage.table._queue = {};
+  Object.defineProperties(_storage.table._queue, {
+    _push: {
+      value: function(task) {
+        this[task.tableName] = this[task.tableName] || [];
+        return this[task.tableName].push(task);
+      }
+    },
+
+    _shift: {
+      value: function(task) {
+        this[task.tableName] = this[task.tableName] || [];
+        this[task.tableName].shift();
+        return this[task.tableName].length;
+      }
+    },
+
+    _executeTask: {
+      value: function(task) {
+        var _this    = this;
+        var argv     = _.clone(task.argv);
+        var callback = argv.pop() || function() {};
+        var newCallback = function() {
+          if (_this._shift(task)) {
+            _this._executeTask(_this[task.tableName][0]);
+          }
+          callback.apply(null, arguments);
+        };
+        argv.push(newCallback);
+        argv.unshift(task.tableName);
+        _storage.table._operator[task.action].apply(_storage.table, argv);
+      }
+    },
+
+    addTask: {
+      value: function(task) {
+        if (this._push(task) === 1)
+          this._executeTask(task);
+      }
+    }
+  });
+
+  _storage.table._operator = {};
+
+  /**
    * Create a table record.
    * @param {String} tableName
    * @param {*} newRecord
    * @param {Function} [callback] - callback(newRecord)
    */
-  _storage.table.create = function(tableName, newRecord, callback) {
+  _storage.table._operator.create = function(tableName, newRecord, callback) {
     callback = callback || function() {};
     _storage.get(tableName, function(records) {
       records.push(newRecord);
@@ -70,15 +182,12 @@
    * @param {Function} [predicate]
    * @param {Function} callback - callback(matchedRecords)
    */
-  _storage.table.find = function(tableName, predicate, callback) {
-    if (!callback && !predicate)
-      throw new Error('Error: invalid arguments');
+  _storage.table._operator.find = function(tableName, predicate, callback) {
+    predicate = predicate || _.identity;
     _storage.get(tableName, function(records) {
-      if (!callback)
-        return predicate(records);
       callback(_.filter(records, predicate));
     });
-  }
+  };
 
   /**
    * Update all table record that matches the predicate.
@@ -87,7 +196,7 @@
    * @param {Function} predicate
    * @param {Function} [callback] - callback(updatedRecords, originalRecords)
    */
-  _storage.table.update = function(tableName, newRecord, predicate, callback) {
+  _storage.table._operator.update = function(tableName, newRecord, predicate, callback) {
     callback = callback || function() {};
     _storage.get(tableName, function(records) {
       var original = [];
@@ -108,7 +217,7 @@
    * @param {Function} predicate
    * @param {Function} [callback] - callback(removedRecords)
    */
-  _storage.table.remove = function(tableName, predicate, callback) {
+  _storage.table._operator.remove = function(tableName, predicate, callback) {
     callback = callback || function() {};
     _storage.get(tableName, function(records) {
       var removed = _.remove(records, predicate);
