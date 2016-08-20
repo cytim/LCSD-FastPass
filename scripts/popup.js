@@ -7,7 +7,7 @@ $(function() {
     var today    = moment().startOf('day');
     var tomorrow = today.clone().add(1, 'days');
 
-    var events = window.events = _.map(_.range(fastpass.forecastPeriod), function(i) {
+    var events = _.map(_.range(fastpass.forecastPeriod), function(i) {
       return {
         date: today.clone().add(i, 'days'),
         type: 'checkable'
@@ -53,14 +53,13 @@ $(function() {
         }
       };
       if (hasFacilityCheck) {
-        _.remove(reminders, function(reminder) {
+        storage.table.remove('reminders', function(reminder) {
           return reminder.type === targetReminder.type && reminder.extra.targetTimestamp === targetReminder.extra.targetTimestamp;
         });
       }
       else {
-        reminders.push(targetReminder);
+        storage.table.create('reminders', targetReminder);
       }
-      storage.set('reminders', reminders);
     }
 
     /* * * * * * * * * * * * * * * * * * * * *
@@ -92,5 +91,5 @@ $(function() {
   /* * * * * * * * * * * * * * * * * * * * *
    * Page Pre-initialization
    * * * * * * * * * * * * * * * * * * * * */
-  storage.get('reminders', init);
+  storage.table.find('reminders', init);
 });
