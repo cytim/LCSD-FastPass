@@ -48,6 +48,7 @@ $(function() {
       var targetReminder = {
         type: 'FACILITY_CHECK',
         expiry: expiry.isSameOrBefore(today) ? tomorrow.valueOf() : expiry.valueOf(),
+        isActive: true,
         extra: {
           targetTimestamp: target.date.valueOf()
         }
@@ -65,8 +66,17 @@ $(function() {
     /* * * * * * * * * * * * * * * * * * * * *
      * Page Initialization
      * * * * * * * * * * * * * * * * * * * * */
-    $('#redirect').click(function() {
+
+    $('#facility-check-btn').click(function() {
       chrome.tabs.create({ url: fastpass.lcsdFacilityCheckingUrl });
+    });
+
+    $('#facility-booking-general-btn').click(function() {
+     chrome.tabs.create({ url: fastpass.lcsdFacilityBookingGeneralUrl });
+    });
+
+    $('#facility-booking-individual-btn').click(function() {
+      chrome.tabs.create({ url: fastpass.lcsdFacilityBookingIndividualUrl });
     });
 
     reminderCalendar = reminderCalendar.clndr({

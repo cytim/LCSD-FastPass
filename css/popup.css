@@ -23,12 +23,31 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 #actions {
+  margin: 15px -3px;
+}
+#actions:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+#actions .btn-container,
+#actions .btn-container-large {
+  float: left;
+  width: 50%;
+  margin: 0 0 6px;
+  padding: 0 3px;
+}
+#actions .btn-container-large {
   width: 100%;
-  margin: 15px auto;
 }
 #actions .btn,
 #actions .btn-large {
   width: 100%;
+}
+#actions .btn {
+  padding-left: 1rem;
+  padding-right: 1rem;
+  font-size: .8rem;
 }
 
 #reminders .calendar .days .day.facility-check-reminder:after,
