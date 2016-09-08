@@ -24,7 +24,7 @@ $(function() {
         area: null
       },
       filter: {
-        bookable: true
+        bookable: false
       },
       venues: []
     }
